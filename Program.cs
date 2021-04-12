@@ -1,17 +1,10 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Mail;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -60,7 +53,6 @@ namespace Example_941
             // For a description of the Bot API, see this page: https://core.telegram.org/bots/api
 
             token = "1732208764:AAF-JPzVhiq2nOeFV11qd2HETfHDNyUFxoY";
-            //NewMethod(token);
             path = Directory.GetCurrentDirectory();
             d_files = new Dictionary<int, TypeMessage>();
             d_audioPhoto = new List<TypeMessage>();
@@ -76,56 +68,8 @@ namespace Example_941
             bot.StartReceiving(Array.Empty<UpdateType>());
 
             Console.ReadLine();
-            bot.StopReceiving();
-            //bot.OnMessage += MessageListener;
-            //bot.StartReceiving();
-            //Main2();
-            //Console.ReadKey();
-        }
-
-        private static void NewMethod(string token)
-        {            
-            int update_id = 0;
-            WebClient wc = new WebClient() { Encoding = Encoding.UTF8 };
-            string startUrl = $@"https://api.telegram.org/bot{token}/";
-
-            while (true)
-            {
-                string url = $"{startUrl}getUpdates?offset={update_id}";
-                var r = wc.DownloadString(url);
-
-                //Console.WriteLine(r);
-                //Console.ReadLine();
-
-                var msgs = JObject.Parse(r)["result"].ToArray();
-
-                foreach (dynamic msg in msgs)
-                {
-                    update_id = Convert.ToInt32(msg.update_id) + 1;
-
-                    string userMessage = msg.message.text;
-                    string userId = msg.message.from.id;
-                    string useFirstrName = msg.message.from.first_name;
-
-                    string text = $"{useFirstrName} {userId} {userMessage}";
-
-                    Console.WriteLine(text);
-
-                    if (userMessage == "hi")
-                    {
-                        string responseText = $"Здравствуйте, {useFirstrName}";
-                        url = $"{startUrl}sendMessage?chat_id={userId}&text={responseText}";
-                        //Console.WriteLine("+");
-                        Console.WriteLine(wc.DownloadString(url));
-                    }
-                }
-
-
-                Thread.Sleep(100);
-            }
-
-            Console.WriteLine("++++");
-        }
+            bot.StopReceiving();            
+        }        
 
         private static async void MessageListener(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
@@ -159,11 +103,7 @@ namespace Example_941
                 Telegram.Bot.Types.PhotoSize[] photoSizes = e.Message.Photo;
                 fileName.fileName = photoSizes[0].FileId;
                 d_audioPhoto.Add(fileName);
-                Console.WriteLine(photoSizes[0].FileId);
-                //Console.WriteLine(e.Message.Document.FileName);
-                //Console.WriteLine(e.Message.Document.FileSize);
-
-                //DownLoad(e.Message.Document.FileId, e.Message.Document.FileName);
+                Console.WriteLine(photoSizes[0].FileId);                
             }
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Audio)
             {
@@ -171,10 +111,6 @@ namespace Example_941
                 fileName.fileName = e.Message.Audio.FileId;
                 d_audioPhoto.Add(fileName);
                 Console.WriteLine(e.Message.Audio.FileId);
-                //Console.WriteLine(e.Message.Document.FileName);
-                //Console.WriteLine(e.Message.Document.FileSize);
-
-                //DownLoad(e.Message.Document.FileId, e.Message.Document.FileName);
             }
 
             var messageText = e.Message.Text;
@@ -267,10 +203,6 @@ namespace Example_941
                                 Console.WriteLine("Key Not Found Exception");
                             }
                         }
-                        //messageText = "";
-                        //bot
-                        //await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                        //    $"{messageText}");
                     }
                 }
             }
