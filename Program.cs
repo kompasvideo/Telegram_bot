@@ -61,8 +61,8 @@ namespace Example_941
             bot.OnMessage += MessageListener;
             bot.OnMessageEdited += MessageListener;
             bot.OnCallbackQuery += BotOnCallbackQueryReceived;
-            bot.OnInlineQuery += BotOnInlineQueryReceived;
-            bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
+            //bot.OnInlineQuery += BotOnInlineQueryReceived;
+            //bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
             bot.OnReceiveError += BotOnReceiveError;
 
             bot.StartReceiving(Array.Empty<UpdateType>());
@@ -76,10 +76,6 @@ namespace Example_941
             var message = e.Message;
             if (message == null || message.Type != MessageType.Text)
                 return;
-
-            string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
-
-            Console.WriteLine($"{text} TypeMessage: {e.Message.Type.ToString()}");
             int userId = e.Message.From.Id;
             string l_path = path + "\\" + userId.ToString();
             string l_fileName;
@@ -88,6 +84,11 @@ namespace Example_941
                 Directory.CreateDirectory(l_path);
             }
             Directory.SetCurrentDirectory(l_path);
+
+            #region Write
+            string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
+
+            Console.WriteLine($"{text} TypeMessage: {e.Message.Type.ToString()}");
             TypeMessage fileName = new TypeMessage();
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Document)
             {
@@ -112,7 +113,7 @@ namespace Example_941
                 d_audioPhoto.Add(fileName);
                 Console.WriteLine(e.Message.Audio.FileId);
             }
-
+            #endregion
             var messageText = e.Message.Text;
 
             if (e.Message.Text == null) return;
@@ -254,121 +255,120 @@ namespace Example_941
             }
             return str_return;
         }
-                
+
+        #region Main2
         //public static async Task Main2()
-        public static void Main2()
-        {
-#if USE_PROXY
-            var Proxy = new WebProxy(Configuration.Proxy.Host, Configuration.Proxy.Port) { UseDefaultCredentials = true };
-            Bot = new TelegramBotClient(Configuration.BotToken, webProxy: Proxy);
-#else
-            //bot = new TelegramBotClient(Configuration.BotToken);
-#endif
+        //public static void Main2()
+        //{
 
-            //var me = await bot.GetMeAsync();
-            var me = bot.GetMeAsync();
-            //Console.Title = me.Username;
+        //    //var me = await bot.GetMeAsync();
+        //    var me = bot.GetMeAsync();
+        //    //Console.Title = me.Username;
 
-            bot.OnMessage += BotOnMessageReceived;
-            bot.OnMessageEdited += BotOnMessageReceived;
-            bot.OnCallbackQuery += BotOnCallbackQueryReceived;
-            bot.OnInlineQuery += BotOnInlineQueryReceived;
-            bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
-            bot.OnReceiveError += BotOnReceiveError;
+        //    bot.OnMessage += BotOnMessageReceived;
+        //    bot.OnMessageEdited += BotOnMessageReceived;
+        //    bot.OnCallbackQuery += BotOnCallbackQueryReceived;
+        //    bot.OnInlineQuery += BotOnInlineQueryReceived;
+        //    bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
+        //    bot.OnReceiveError += BotOnReceiveError;
 
-            bot.StartReceiving(Array.Empty<UpdateType>());
-            //Console.WriteLine($"Start listening for @{me.Username}");
+        //    bot.StartReceiving(Array.Empty<UpdateType>());
+        //    //Console.WriteLine($"Start listening for @{me.Username}");
 
-            Console.ReadLine();
-            bot.StopReceiving();
-        }
-        private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
-        {
-            var message = messageEventArgs.Message;
-            if (message == null || message.Type != MessageType.Text)
-                return;
+        //    Console.ReadLine();
+        //    bot.StopReceiving();
+        //}
+        #endregion
+        #region BotOnMessageReceived
+        //private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
+        //{
+        //    var message = messageEventArgs.Message;
+        //    if (message == null || message.Type != MessageType.Text)
+        //        return;
 
-            switch (message.Text.Split(' ').First())
-            {
-                // Send inline keyboard
-                case "/inline":
-                    await SendInlineKeyboard(message);
-                    break;
+        //    switch (message.Text.Split(' ').First())
+        //    {
+        //        // Send inline keyboard
+        //        case "/inline":
+        //            await SendInlineKeyboard(message);
+        //            break;
 
-                // send custom keyboard
-                case "/keyboard":
-                    await SendReplyKeyboard(message);
-                    break;
+        //        // send custom keyboard
+        //        case "/keyboard":
+        //            await SendReplyKeyboard(message);
+        //            break;
 
-                // send a photo
-                case "/photo":
-                    await SendPhoto(message);
-                    break;
-                // send a photo
-                case "/doc":
-                    await SendDocument(message);
-                    break;
+        //        // send a photo
+        //        case "/photo":
+        //            await SendPhoto(message);
+        //            break;
+        //        // send a photo
+        //        case "/doc":
+        //            await SendDocument(message);
+        //            break;
 
-                // request location or contact
-                case "/request":
-                    await RequestContactAndLocation(message);
-                    break;
+        //        // request location or contact
+        //        case "/request":
+        //            await RequestContactAndLocation(message);
+        //            break;
 
-                default:
-                    await Usage(message);
-                    break;
-            }
-        }
+        //        default:
+        //            await Usage(message);
+        //            break;
+        //    }
+        //}
+        #endregion
         // Send inline keyboard
         // You can process responses in BotOnCallbackQueryReceived handler
-        static async Task SendInlineKeyboard(Message message)
-        {
-            await bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
+        #region Delete
+        //static async Task SendInlineKeyboard(Message message)
+        //{
+        //    await bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
 
-            // Simulate longer running task
-            await Task.Delay(500);
+        //    // Simulate longer running task
+        //    await Task.Delay(500);
 
-            var inlineKeyboard = new InlineKeyboardMarkup(new[]
-            {
-                    // first row
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("1.1", "11"),
-                        InlineKeyboardButton.WithCallbackData("1.2", "12"),
-                    },
-                    // second row
-                    new []
-                    {
-                        InlineKeyboardButton.WithCallbackData("2.1", "21"),
-                        InlineKeyboardButton.WithCallbackData("2.2", "22"),
-                    }
-                });
-            await bot.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "Choose",
-                replyMarkup: inlineKeyboard
-            );
-        }
+        //    var inlineKeyboard = new InlineKeyboardMarkup(new[]
+        //    {
+        //            // first row
+        //            new []
+        //            {
+        //                InlineKeyboardButton.WithCallbackData("1.1", "11"),
+        //                InlineKeyboardButton.WithCallbackData("1.2", "12"),
+        //            },
+        //            // second row
+        //            new []
+        //            {
+        //                InlineKeyboardButton.WithCallbackData("2.1", "21"),
+        //                InlineKeyboardButton.WithCallbackData("2.2", "22"),
+        //            }
+        //        });
+        //    await bot.SendTextMessageAsync(
+        //        chatId: message.Chat.Id,
+        //        text: "Choose",
+        //        replyMarkup: inlineKeyboard
+        //    );
+        //}
 
-        static async Task SendReplyKeyboard(Message message)
-        {
-            var replyKeyboardMarkup = new ReplyKeyboardMarkup(
-                new KeyboardButton[][]
-                {
-                        new KeyboardButton[] { "1.1", "1.2" },
-                        new KeyboardButton[] { "2.1", "2.2" },
-                },
-                resizeKeyboard: true
-            );
+        //static async Task SendReplyKeyboard(Message message)
+        //{
+        //    var replyKeyboardMarkup = new ReplyKeyboardMarkup(
+        //        new KeyboardButton[][]
+        //        {
+        //                new KeyboardButton[] { "1.1", "1.2" },
+        //                new KeyboardButton[] { "2.1", "2.2" },
+        //        },
+        //        resizeKeyboard: true
+        //    );
 
-            await bot.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "Choose",
-                replyMarkup: replyKeyboardMarkup
+        //    await bot.SendTextMessageAsync(
+        //        chatId: message.Chat.Id,
+        //        text: "Choose",
+        //        replyMarkup: replyKeyboardMarkup
 
-            );
-        }
-
+        //    );
+        //}
+        #endregion
         static async Task SendDocument(Message message)
         {
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
@@ -382,49 +382,49 @@ namespace Example_941
                 caption: "AB_Files.xml"
             );
         }
+        #region Delete2
+        //static async Task SendPhoto(Message message)
+        //{
+        //    await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
 
-        static async Task SendPhoto(Message message)
-        {
-            await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
+        //    const string filePath = @"Files/tux.png";
+        //    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        //    var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
+        //    await bot.SendPhotoAsync(
+        //        chatId: message.Chat.Id,
+        //        photo: new InputOnlineFile(fileStream, fileName),
+        //        caption: "Nice Picture"
+        //    );
+        //}
+        //static async Task RequestContactAndLocation(Message message)
+        //{
+        //    var RequestReplyKeyboard = new ReplyKeyboardMarkup(new[]
+        //    {
+        //            KeyboardButton.WithRequestLocation("Location"),
+        //            KeyboardButton.WithRequestContact("Contact"),
+        //        });
+        //    await bot.SendTextMessageAsync(
+        //        chatId: message.Chat.Id,
+        //        text: "Who or Where are you?",
+        //        replyMarkup: RequestReplyKeyboard
+        //    );
+        //}
 
-            const string filePath = @"Files/tux.png";
-            var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
-            await bot.SendPhotoAsync(
-                chatId: message.Chat.Id,
-                photo: new InputOnlineFile(fileStream, fileName),
-                caption: "Nice Picture"
-            );
-        }
-        static async Task RequestContactAndLocation(Message message)
-        {
-            var RequestReplyKeyboard = new ReplyKeyboardMarkup(new[]
-            {
-                    KeyboardButton.WithRequestLocation("Location"),
-                    KeyboardButton.WithRequestContact("Contact"),
-                });
-            await bot.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: "Who or Where are you?",
-                replyMarkup: RequestReplyKeyboard
-            );
-        }
+        //static async Task Usage(Message message)
+        //{
+        //    const string usage = "Usage:\n" +
+        //                            "/inline   - send inline keyboard\n" +
+        //                            "/keyboard - send custom keyboard\n" +
+        //                            "/photo    - send a photo\n" +
+        //                            "/request  - request location or contact";
+        //    await bot.SendTextMessageAsync(
+        //        chatId: message.Chat.Id,
+        //        text: usage,
+        //        replyMarkup: new ReplyKeyboardRemove()
+        //    );
+        //}
 
-        static async Task Usage(Message message)
-        {
-            const string usage = "Usage:\n" +
-                                    "/inline   - send inline keyboard\n" +
-                                    "/keyboard - send custom keyboard\n" +
-                                    "/photo    - send a photo\n" +
-                                    "/request  - request location or contact";
-            await bot.SendTextMessageAsync(
-                chatId: message.Chat.Id,
-                text: usage,
-                replyMarkup: new ReplyKeyboardRemove()
-            );
-        }
-
-
+        #endregion
         // Process Inline Keyboard callback data
         private static async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
         {
