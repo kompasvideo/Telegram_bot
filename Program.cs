@@ -61,15 +61,14 @@ namespace Example_941
             bot.OnMessage += MessageListener;
             bot.OnMessageEdited += MessageListener;
             bot.OnCallbackQuery += BotOnCallbackQueryReceived;
-            //bot.OnInlineQuery += BotOnInlineQueryReceived;
-            //bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
+            
             bot.OnReceiveError += BotOnReceiveError;
 
             bot.StartReceiving(Array.Empty<UpdateType>());
 
             Console.ReadLine();
             bot.StopReceiving();            
-        }        
+        }
 
         private static async void MessageListener(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
@@ -98,13 +97,13 @@ namespace Example_941
 
                 DownLoad(e.Message.Document.FileId, e.Message.Document.FileName);
             }
-            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Photo )
+            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Photo)
             {
                 fileName.type = Type.Photo;
                 Telegram.Bot.Types.PhotoSize[] photoSizes = e.Message.Photo;
                 fileName.fileName = photoSizes[0].FileId;
                 d_audioPhoto.Add(fileName);
-                Console.WriteLine(photoSizes[0].FileId);                
+                Console.WriteLine(photoSizes[0].FileId);
             }
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Audio)
             {
@@ -116,37 +115,37 @@ namespace Example_941
             #endregion
             var messageText = e.Message.Text;
 
-            if (e.Message.Text == null) return;
-            if (e.Message.Text == "/start")
+            switch (e.Message.Text)
             {
-                messageText = "Вас приветствует бот 'test20210404_bot'\n" +
-                    "Вы можете управлять мной, отправляя эти команды: \n" +
-                    "/list - просмотреть список загруженных файлов\n" +
-                    "/load_n - скачать выбранный файл, где n - число\n" +
-                    "/help - справка по поддерживаемым коммандам\n";
+                case null:
+                    break;
+                case "/start":            
+                    messageText = "Вас приветствует бот 'test20210404_bot'\n" +
+                        "Вы можете управлять мной, отправляя эти команды: \n" +
+                        "/list - просмотреть список загруженных файлов\n" +
+                        "/load_n - скачать выбранный файл, где n - число\n" +
+                        "/help - справка по поддерживаемым коммандам\n";
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
 
-                await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                    $"{messageText}");
+                case "/help":            
+                    messageText = "Вы можете управлять мной, отправляя эти команды: \n" +
+                        "/list - просмотреть список загруженных файлов\n" +
+                        "/load_n - скачать выбранный файл, где n - число\n" +
+                        "/help - справка по поддерживаемым коммандам\n";
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
 
-            }
-            if (e.Message.Text == "/help")
-            {
-                messageText = "Вы можете управлять мной, отправляя эти команды: \n" +
-                    "/list - просмотреть список загруженных файлов\n" +
-                    "/load_n - скачать выбранный файл, где n - число\n" +
-                    "/help - справка по поддерживаемым коммандам\n";
-                await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                    $"{messageText}");
-
-            }
-            if (e.Message.Text == "/list")
-            {
-                messageText = GetFiles(l_path);
-                await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                    $"{messageText}");
-            }            
-            string str_load = e.Message.Text.Substring(0,1);
-            if (str_load == "/")
+                case "/list":            
+                    messageText = GetFiles(l_path);
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
+                default:
+                    string str_load = e.Message.Text.Substring(0, 1);
+                    if (str_load == "/")
             {
                 if (e.Message.Text.Length >= 6)
                 {
@@ -163,7 +162,7 @@ namespace Example_941
                             try
                             {
                                 name = d_files[nomer];
-                                switch(name.type)
+                                switch (name.type)
                                 {
                                     case Type.Document:
                                         ////l_fileName = string.Format($"attach://")+l_path+"\\"+name.fileName;
@@ -187,7 +186,7 @@ namespace Example_941
                                         //bot.SendDocumentAsync(e.Message.Chat.Id, url);
                                         await SendDocument(message);
                                         break;
-                                    case Type.Audio:                                        
+                                    case Type.Audio:
                                         await bot.SendAudioAsync(e.Message.Chat.Id, name.fileName);
                                         break;
                                     case Type.Photo:
@@ -206,6 +205,8 @@ namespace Example_941
                         }
                     }
                 }
+            }
+                    break;
             }
         }
 
@@ -254,121 +255,7 @@ namespace Example_941
                 poz++;
             }
             return str_return;
-        }
-
-        #region Main2
-        //public static async Task Main2()
-        //public static void Main2()
-        //{
-
-        //    //var me = await bot.GetMeAsync();
-        //    var me = bot.GetMeAsync();
-        //    //Console.Title = me.Username;
-
-        //    bot.OnMessage += BotOnMessageReceived;
-        //    bot.OnMessageEdited += BotOnMessageReceived;
-        //    bot.OnCallbackQuery += BotOnCallbackQueryReceived;
-        //    bot.OnInlineQuery += BotOnInlineQueryReceived;
-        //    bot.OnInlineResultChosen += BotOnChosenInlineResultReceived;
-        //    bot.OnReceiveError += BotOnReceiveError;
-
-        //    bot.StartReceiving(Array.Empty<UpdateType>());
-        //    //Console.WriteLine($"Start listening for @{me.Username}");
-
-        //    Console.ReadLine();
-        //    bot.StopReceiving();
-        //}
-        #endregion
-        #region BotOnMessageReceived
-        //private static async void BotOnMessageReceived(object sender, MessageEventArgs messageEventArgs)
-        //{
-        //    var message = messageEventArgs.Message;
-        //    if (message == null || message.Type != MessageType.Text)
-        //        return;
-
-        //    switch (message.Text.Split(' ').First())
-        //    {
-        //        // Send inline keyboard
-        //        case "/inline":
-        //            await SendInlineKeyboard(message);
-        //            break;
-
-        //        // send custom keyboard
-        //        case "/keyboard":
-        //            await SendReplyKeyboard(message);
-        //            break;
-
-        //        // send a photo
-        //        case "/photo":
-        //            await SendPhoto(message);
-        //            break;
-        //        // send a photo
-        //        case "/doc":
-        //            await SendDocument(message);
-        //            break;
-
-        //        // request location or contact
-        //        case "/request":
-        //            await RequestContactAndLocation(message);
-        //            break;
-
-        //        default:
-        //            await Usage(message);
-        //            break;
-        //    }
-        //}
-        #endregion
-        // Send inline keyboard
-        // You can process responses in BotOnCallbackQueryReceived handler
-        #region Delete
-        //static async Task SendInlineKeyboard(Message message)
-        //{
-        //    await bot.SendChatActionAsync(message.Chat.Id, ChatAction.Typing);
-
-        //    // Simulate longer running task
-        //    await Task.Delay(500);
-
-        //    var inlineKeyboard = new InlineKeyboardMarkup(new[]
-        //    {
-        //            // first row
-        //            new []
-        //            {
-        //                InlineKeyboardButton.WithCallbackData("1.1", "11"),
-        //                InlineKeyboardButton.WithCallbackData("1.2", "12"),
-        //            },
-        //            // second row
-        //            new []
-        //            {
-        //                InlineKeyboardButton.WithCallbackData("2.1", "21"),
-        //                InlineKeyboardButton.WithCallbackData("2.2", "22"),
-        //            }
-        //        });
-        //    await bot.SendTextMessageAsync(
-        //        chatId: message.Chat.Id,
-        //        text: "Choose",
-        //        replyMarkup: inlineKeyboard
-        //    );
-        //}
-
-        //static async Task SendReplyKeyboard(Message message)
-        //{
-        //    var replyKeyboardMarkup = new ReplyKeyboardMarkup(
-        //        new KeyboardButton[][]
-        //        {
-        //                new KeyboardButton[] { "1.1", "1.2" },
-        //                new KeyboardButton[] { "2.1", "2.2" },
-        //        },
-        //        resizeKeyboard: true
-        //    );
-
-        //    await bot.SendTextMessageAsync(
-        //        chatId: message.Chat.Id,
-        //        text: "Choose",
-        //        replyMarkup: replyKeyboardMarkup
-
-        //    );
-        //}
-        #endregion
+        }                
         static async Task SendDocument(Message message)
         {
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
@@ -381,51 +268,8 @@ namespace Example_941
                 document: new InputOnlineFile(fileStream, fileName),
                 caption: "AB_Files.xml"
             );
-        }
-        #region Delete2
-        //static async Task SendPhoto(Message message)
-        //{
-        //    await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
-
-        //    const string filePath = @"Files/tux.png";
-        //    var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-        //    var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
-        //    await bot.SendPhotoAsync(
-        //        chatId: message.Chat.Id,
-        //        photo: new InputOnlineFile(fileStream, fileName),
-        //        caption: "Nice Picture"
-        //    );
-        //}
-        //static async Task RequestContactAndLocation(Message message)
-        //{
-        //    var RequestReplyKeyboard = new ReplyKeyboardMarkup(new[]
-        //    {
-        //            KeyboardButton.WithRequestLocation("Location"),
-        //            KeyboardButton.WithRequestContact("Contact"),
-        //        });
-        //    await bot.SendTextMessageAsync(
-        //        chatId: message.Chat.Id,
-        //        text: "Who or Where are you?",
-        //        replyMarkup: RequestReplyKeyboard
-        //    );
-        //}
-
-        //static async Task Usage(Message message)
-        //{
-        //    const string usage = "Usage:\n" +
-        //                            "/inline   - send inline keyboard\n" +
-        //                            "/keyboard - send custom keyboard\n" +
-        //                            "/photo    - send a photo\n" +
-        //                            "/request  - request location or contact";
-        //    await bot.SendTextMessageAsync(
-        //        chatId: message.Chat.Id,
-        //        text: usage,
-        //        replyMarkup: new ReplyKeyboardRemove()
-        //    );
-        //}
-
-        #endregion
-        // Process Inline Keyboard callback data
+        }        
+        
         private static async void BotOnCallbackQueryReceived(object sender, CallbackQueryEventArgs callbackQueryEventArgs)
         {
             var callbackQuery = callbackQueryEventArgs.CallbackQuery;
@@ -440,37 +284,6 @@ namespace Example_941
                 text: $"Received {callbackQuery.Data}"
             );
         }
-
-        #region Inline Mode
-
-        private static async void BotOnInlineQueryReceived(object sender, InlineQueryEventArgs inlineQueryEventArgs)
-        {
-            Console.WriteLine($"Received inline query from: {inlineQueryEventArgs.InlineQuery.From.Id}");
-
-            InlineQueryResultBase[] results = {
-                // displayed result
-                new InlineQueryResultArticle(
-                    id: "3",
-                    title: "TgBots",
-                    inputMessageContent: new InputTextMessageContent(
-                        "hello"
-                    )
-                )
-            };
-            await bot.AnswerInlineQueryAsync(
-                inlineQueryId: inlineQueryEventArgs.InlineQuery.Id,
-                results: results,
-                isPersonal: true,
-                cacheTime: 0
-            );
-        }
-
-        private static void BotOnChosenInlineResultReceived(object sender, ChosenInlineResultEventArgs chosenInlineResultEventArgs)
-        {
-            Console.WriteLine($"Received inline result: {chosenInlineResultEventArgs.ChosenInlineResult.ResultId}");
-        }
-
-        #endregion
 
         private static void BotOnReceiveError(object sender, ReceiveErrorEventArgs receiveErrorEventArgs)
         {
