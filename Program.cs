@@ -60,10 +60,8 @@ namespace Example_941
             bot = new TelegramBotClient(token);
             bot.OnMessage += MessageListener;
             bot.OnMessageEdited += MessageListener;
-            bot.OnCallbackQuery += BotOnCallbackQueryReceived;
-            
+            bot.OnCallbackQuery += BotOnCallbackQueryReceived;            
             bot.OnReceiveError += BotOnReceiveError;
-
             bot.StartReceiving(Array.Empty<UpdateType>());
 
             Console.ReadLine();
@@ -77,13 +75,52 @@ namespace Example_941
                 return;
             int userId = e.Message.From.Id;
             string l_path = path + "\\" + userId.ToString();
-            string l_fileName;
             if (!Directory.Exists(l_path))
             {
                 Directory.CreateDirectory(l_path);
             }
             Directory.SetCurrentDirectory(l_path);
+            WriteToConsol(e);
 
+
+            var messageText = e.Message.Text;
+
+            switch (messageText)
+            {
+                case null:
+                    break;
+                case "/start":            
+                    messageText = "Вас приветствует бот 'test20210404_bot'\n" +
+                        "Вы можете управлять мной, отправляя эти команды: \n" +
+                        "/list - просмотреть список загруженных файлов\n" +
+                        "/load_n - скачать выбранный файл, где n - число\n" +
+                        "/help - справка по поддерживаемым коммандам\n";
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
+
+                case "/help":            
+                    messageText = "Вы можете управлять мной, отправляя эти команды: \n" +
+                        "/list - просмотреть список загруженных файлов\n" +
+                        "/load_n - скачать выбранный файл, где n - число\n" +
+                        "/help - справка по поддерживаемым коммандам\n";
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
+
+                case "/list":            
+                    messageText = GetFiles(l_path);
+                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                        $"{messageText}");
+                    break;
+                default:
+                    MessageDefault(e);
+                    break;
+            }
+        }
+
+        private static void WriteToConsol(Telegram.Bot.Args.MessageEventArgs e)
+        {
             #region Write
             string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
 
@@ -113,39 +150,12 @@ namespace Example_941
                 Console.WriteLine(e.Message.Audio.FileId);
             }
             #endregion
-            var messageText = e.Message.Text;
-
-            switch (e.Message.Text)
-            {
-                case null:
-                    break;
-                case "/start":            
-                    messageText = "Вас приветствует бот 'test20210404_bot'\n" +
-                        "Вы можете управлять мной, отправляя эти команды: \n" +
-                        "/list - просмотреть список загруженных файлов\n" +
-                        "/load_n - скачать выбранный файл, где n - число\n" +
-                        "/help - справка по поддерживаемым коммандам\n";
-                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                        $"{messageText}");
-                    break;
-
-                case "/help":            
-                    messageText = "Вы можете управлять мной, отправляя эти команды: \n" +
-                        "/list - просмотреть список загруженных файлов\n" +
-                        "/load_n - скачать выбранный файл, где n - число\n" +
-                        "/help - справка по поддерживаемым коммандам\n";
-                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                        $"{messageText}");
-                    break;
-
-                case "/list":            
-                    messageText = GetFiles(l_path);
-                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                        $"{messageText}");
-                    break;
-                default:
-                    string str_load = e.Message.Text.Substring(0, 1);
-                    if (str_load == "/")
+        }
+        private static async void MessageDefault(Telegram.Bot.Args.MessageEventArgs e)
+        {
+            string l_fileName;
+            string str_load = e.Message.Text.Substring(0, 1);
+            if (str_load == "/")
             {
                 if (e.Message.Text.Length >= 6)
                 {
@@ -155,7 +165,6 @@ namespace Example_941
                         string[] subString = e.Message.Text.Split('_');
                         string str_nomer = subString[1];
                         int nomer;
-                        string url;
                         TypeMessage name = null;
                         if (int.TryParse(str_nomer, out nomer))
                         {
@@ -165,26 +174,7 @@ namespace Example_941
                                 switch (name.type)
                                 {
                                     case Type.Document:
-                                        ////l_fileName = string.Format($"attach://")+l_path+"\\"+name.fileName;
-                                        //l_fileName = l_path + "\\" + name.fileName;
-                                        //using (FileStream stream = System.IO.File.OpenRead(l_fileName))
-                                        //{
-
-                                        //    string ssf = l_fileName;
-                                        //        //Path.GetFileName(l_fileName); // Получаем имя файла из потока
-
-                                        //    var Iof = new InputOnlineFile(stream, ssf); // Входные данные для отправки
-
-                                        //    string fromsend = $"Файл отправлен от: {Environment.UserName}"; // Имя пользователя
-
-                                        //    //Message ss = 
-                                        //        bot.SendDocumentAsync(e.Message.Chat.Id, Iof, fromsend); // Отправка файла с параметрами.
-
-                                        //}
-
-                                        //url = UpLoad(token,e.Message.Chat.Id, l_fileName);
-                                        //bot.SendDocumentAsync(e.Message.Chat.Id, url);
-                                        await SendDocument(message);
+                                        await SendDocument(e.Message, name.fileName);
                                         break;
                                     case Type.Audio:
                                         await bot.SendAudioAsync(e.Message.Chat.Id, name.fileName);
@@ -205,8 +195,6 @@ namespace Example_941
                         }
                     }
                 }
-            }
-                    break;
             }
         }
 
@@ -256,17 +244,16 @@ namespace Example_941
             }
             return str_return;
         }                
-        static async Task SendDocument(Message message)
+        static async Task SendDocument(Message message, string filePath)
         {
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
-
-            const string filePath = @"AB_Files.xml";
+            //const string filePath = @"AB_Files.xml";
             var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
             await bot.SendDocumentAsync(
                 chatId: message.Chat.Id,
                 document: new InputOnlineFile(fileStream, fileName),
-                caption: "AB_Files.xml"
+                caption: filePath
             );
         }        
         
