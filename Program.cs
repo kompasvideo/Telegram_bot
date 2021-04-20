@@ -68,7 +68,7 @@ namespace Example_941
             bot.StopReceiving();            
         }
 
-        private static async void MessageListener(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        private static async void MessageListener(object sender, MessageEventArgs e)
         {
             var message = e.Message;
             if (message == null || message.Type != MessageType.Text)
@@ -119,7 +119,7 @@ namespace Example_941
             }
         }
 
-        private static void WriteToConsol(Telegram.Bot.Args.MessageEventArgs e)
+        private static void WriteToConsol(MessageEventArgs e)
         {
             #region Write
             string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
@@ -151,9 +151,8 @@ namespace Example_941
             }
             #endregion
         }
-        private static async void MessageDefault(Telegram.Bot.Args.MessageEventArgs e)
+        private static async void MessageDefault(MessageEventArgs e)
         {
-            string l_fileName;
             string str_load = e.Message.Text.Substring(0, 1);
             if (str_load == "/")
             {
@@ -186,11 +185,11 @@ namespace Example_941
                             }
                             catch (ArgumentException)
                             {
-                                Console.WriteLine("An element with Key = \"txt\" already exists.");
+                                Console.WriteLine("Ошибка ArgumentException");
                             }
                             catch (KeyNotFoundException)
                             {
-                                Console.WriteLine("Key Not Found Exception");
+                                Console.WriteLine("Ошибка KeyNotFoundException");
                             }
                         }
                     }
