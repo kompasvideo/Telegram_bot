@@ -41,18 +41,8 @@ namespace Example_941
             // https://discordapp.com/developers/applications/
             // https://discordapp.com/verification
 
-            // Done! Congratulations on your new bot.You will find it at t.me / Test20210404Bot.You can now add a description,
-            // about section and profile picture for your bot, see / help for a list of commands.By the way, when you've finished
-            // creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully
-            // operational before you do this.
 
-
-            // Use this token to access the HTTP API:
-            //1732208764:AAF-JPzVhiq2nOeFV11qd2HETfHDNyUFxoY
-            // Keep your token secure and store it safely, it can be used by anyone to control your bot.
-            // For a description of the Bot API, see this page: https://core.telegram.org/bots/api
-
-            token = "1732208764:AAF-JPzVhiq2nOeFV11qd2HETfHDNyUFxoY";
+            token = Token.token;
             path = Directory.GetCurrentDirectory();
             d_files = new Dictionary<int, TypeMessage>();
             d_audioPhoto = new List<TypeMessage>();
@@ -68,23 +58,20 @@ namespace Example_941
             bot.StopReceiving();            
         }
 
+        /// <summary>
+        /// Обрабатывает все сообщения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static async void MessageListener(object sender, MessageEventArgs e)
         {
             var message = e.Message;
+            SaveToList(e);
+
             if (message == null || message.Type != MessageType.Text)
                 return;
-            int userId = e.Message.From.Id;
-            string l_path = path + "\\" + userId.ToString();
-            if (!Directory.Exists(l_path))
-            {
-                Directory.CreateDirectory(l_path);
-            }
-            Directory.SetCurrentDirectory(l_path);
-            WriteToConsol(e);
-
 
             var messageText = e.Message.Text;
-
             switch (messageText)
             {
                 case null:
@@ -108,10 +95,12 @@ namespace Example_941
                         $"{messageText}");
                     break;
 
-                case "/list":            
-                    messageText = GetFiles(l_path);
-                    await bot.SendTextMessageAsync(e.Message.Chat.Id,
-                        $"{messageText}");
+                case "/list":
+                    messageText = GetFiles(SetDirectory(e.Message.From.Id));
+                    if (messageText != "")
+                        await bot.SendTextMessageAsync(e.Message.Chat.Id, $"{messageText}");
+                    else
+                        await bot.SendTextMessageAsync(e.Message.Chat.Id, $"Список сейчас пустой");
                     break;
                 default:
                     MessageDefault(e);
@@ -119,38 +108,74 @@ namespace Example_941
             }
         }
 
-        private static void WriteToConsol(MessageEventArgs e)
+        /// <summary>
+        /// Устанавливает текущую директория и возвращяет её
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>Возвращяет текую директорию типа string</returns>
+        static string SetDirectory( int userId)
         {
-            #region Write
+            string l_path = path + "\\" + userId.ToString();
+            if (!Directory.Exists(l_path))
+            {
+                Directory.CreateDirectory(l_path);
+            }
+            Directory.SetCurrentDirectory(l_path);
+            return l_path;
+        }
+
+        /// <summary>
+        /// Сохраняет фото и аудио в список, документы в папку
+        /// </summary>
+        /// <param name="e"></param>
+        private static void SaveToList(MessageEventArgs e)
+        {
             string text = $"{DateTime.Now.ToLongTimeString()}: {e.Message.Chat.FirstName} {e.Message.Chat.Id} {e.Message.Text}";
 
             Console.WriteLine($"{text} TypeMessage: {e.Message.Type.ToString()}");
             TypeMessage fileName = new TypeMessage();
-            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Document)
+            switch (e.Message.Type)
             {
-                Console.WriteLine(e.Message.Document.FileId);
-                Console.WriteLine(e.Message.Document.FileName);
-                Console.WriteLine(e.Message.Document.FileSize);
+                case MessageType.Document:            
+                    Console.WriteLine(e.Message.Document.FileId);
+                    Console.WriteLine(e.Message.Document.FileName);
+                    Console.WriteLine(e.Message.Document.FileSize);
+                    DownLoad(e.Message.Document.FileId, e.Message.Document.FileName);
+                    break;
 
-                DownLoad(e.Message.Document.FileId, e.Message.Document.FileName);
+                case MessageType.Photo:
+                    fileName.type = Type.Photo;
+                    PhotoSize[] photoSizes = e.Message.Photo;
+                    fileName.fileName = photoSizes[0].FileId;
+                    d_audioPhoto.Add(fileName);
+                    Console.WriteLine(photoSizes[0].FileId);
+                    break;
+
+                case MessageType.Audio:            
+                    fileName.type = Type.Audio;
+                    fileName.fileName = e.Message.Audio.FileId;
+                    d_audioPhoto.Add(fileName);
+                    Console.WriteLine(e.Message.Audio.FileId);
+                    break;
+                case MessageType.Voice:
+                    fileName.type = Type.Voice;
+                    fileName.fileName = e.Message.Voice.FileId;
+                    d_audioPhoto.Add(fileName);
+                    Console.WriteLine(e.Message.Voice.FileId);
+                    break;
+                case MessageType.Video:
+                    fileName.type = Type.Video;
+                    fileName.fileName = e.Message.Video.FileId;
+                    d_audioPhoto.Add(fileName);
+                    Console.WriteLine(e.Message.Video.FileId);
+                    break;
             }
-            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Photo)
-            {
-                fileName.type = Type.Photo;
-                Telegram.Bot.Types.PhotoSize[] photoSizes = e.Message.Photo;
-                fileName.fileName = photoSizes[0].FileId;
-                d_audioPhoto.Add(fileName);
-                Console.WriteLine(photoSizes[0].FileId);
-            }
-            if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Audio)
-            {
-                fileName.type = Type.Audio;
-                fileName.fileName = e.Message.Audio.FileId;
-                d_audioPhoto.Add(fileName);
-                Console.WriteLine(e.Message.Audio.FileId);
-            }
-            #endregion
         }
+
+        /// <summary>
+        /// Обработка сообщений по умолчания (всё кроме команд /start /help /list)
+        /// </summary>
+        /// <param name="e"></param>
         private static async void MessageDefault(MessageEventArgs e)
         {
             string str_load = e.Message.Text.Substring(0, 1);
@@ -181,6 +206,12 @@ namespace Example_941
                                     case Type.Photo:
                                         await bot.SendPhotoAsync(e.Message.Chat.Id, name.fileName);
                                         break;
+                                    case Type.Voice:
+                                        await bot.SendVoiceAsync(e.Message.Chat.Id, name.fileName);
+                                        break;
+                                    case Type.Video:
+                                        await bot.SendVideoAsync(e.Message.Chat.Id, name.fileName);
+                                        break;
                                 }
                             }
                             catch (ArgumentException)
@@ -189,7 +220,9 @@ namespace Example_941
                             }
                             catch (KeyNotFoundException)
                             {
-                                Console.WriteLine("Ошибка KeyNotFoundException");
+                                //Console.WriteLine("Ошибка KeyNotFoundException");
+                                await bot.SendTextMessageAsync(e.Message.Chat.Id,
+                                    "Нет документа с таким номером");
                             }
                         }
                     }
@@ -197,16 +230,25 @@ namespace Example_941
             }
         }
 
+        /// <summary>
+        /// Сохраняет документ
+        /// </summary>
+        /// <param name="fileId"></param>
+        /// <param name="path"></param>
         static async void DownLoad(string fileId, string path)
         {
             var file = await bot.GetFileAsync(fileId);
             FileStream fs = new FileStream(path, FileMode.Create);
             await bot.DownloadFileAsync(file.FilePath, fs);
             fs.Close();
-
             fs.Dispose();
         }
 
+        /// <summary>
+        /// Создаёт список документов, аудио, фото и т.д
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns>Возвращяет список документов, аудио, фото и т.д типа string</returns>
         static string GetFiles(string path)
         {
             poz = 0;
@@ -214,6 +256,8 @@ namespace Example_941
             d_files.Clear();
             int photo = 0;
             int audio = 0;
+            int voice = 0;
+            int video = 0;
             TypeMessage typeMessage;
             foreach(var aph in d_audioPhoto)
             {
@@ -229,12 +273,22 @@ namespace Example_941
                     str_return += String.Format($"{poz} - (audio) Запись №{audio}\n");
                     audio++;
                 }
+                if (typeMessage.type == Type.Voice)
+                {
+                    str_return += String.Format($"{poz} - (voice) Запись №{voice}\n");
+                    voice++;
+                }
+                if (typeMessage.type == Type.Video)
+                {
+                    str_return += String.Format($"{poz} - (video) Запись №{video}\n");
+                    video++;
+                }
                 poz++;
             }
             string[] files = Directory.GetFiles(path);
-            TypeMessage fileName = new TypeMessage();
             foreach(var file in files)
             {
+                TypeMessage fileName = new TypeMessage();
                 fileName.fileName = Path.GetFileName(file);
                 fileName.type = Type.Document;
                 d_files.Add(poz, fileName);
@@ -243,10 +297,16 @@ namespace Example_941
             }
             return str_return;
         }                
+
+        /// <summary>
+        /// Отправляет документ
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         static async Task SendDocument(Message message, string filePath)
         {
             await bot.SendChatActionAsync(message.Chat.Id, ChatAction.UploadPhoto);
-            //const string filePath = @"AB_Files.xml";
             var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
             var fileName = filePath.Split(Path.DirectorySeparatorChar).Last();
             await bot.SendDocumentAsync(

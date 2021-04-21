@@ -10,7 +10,9 @@ namespace Example_941
     {
         Document,
         Photo,
-        Audio
+        Audio,
+        Voice,
+        Video
     }
 
     class TypeMessage
